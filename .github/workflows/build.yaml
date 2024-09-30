@@ -1,11 +1,12 @@
 name: Release
 
+permissions:
+  contents: write
+
 on:
   push:
     branches:
       - master
-    tags:
-      - v*
   workflow_dispatch:
 
 jobs:
@@ -38,20 +39,19 @@ jobs:
         if: runner.os == 'macOS'
         run: npm run build:mac
 
-      - uses: actions/upload-artifact@v3
+      - name: release
+        uses: softprops/action-gh-release@v1
         with:
-          name: YesPlayMusic-mac
-          path: dist_electron/*.dmg
-          if-no-files-found: ignore
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: YesPlayMusic-win
-          path: dist/*.exe
-          if-no-files-found: ignore
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: YesPlayMusic-linux
-          path: dist_electron/*.AppImage
-          if-no-files-found: ignore
+          files: |
+            dist/*.exe
+            dist/*.zip
+            dist/*.dmg
+            dist/*.AppImage
+            dist/*.snap
+            dist/*.deb
+            dist/*.rpm
+            dist/*.tar.gz
+            dist/*.yml
+            dist/*.blockmap
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
