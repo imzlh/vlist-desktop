@@ -132,6 +132,7 @@ ipcMain.addListener('create-server', (_, path: string) => {
                 res.end(String(e));
             }
         }
+        return;
     });
     server.listen();
     let addrstr;

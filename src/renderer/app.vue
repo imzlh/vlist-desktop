@@ -21,6 +21,7 @@
                             clearTimeout(timer), clean();
                     }
                     function cb2(ev: MouseEvent){
+                        ev;
                         clean();
                     }
                     document.addEventListener('pointermove', cb);

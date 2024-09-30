@@ -1,8 +1,5 @@
 name: Release
 
-env:
-  YARN_INSTALL_NOPT: yarn add --ignore-platform --ignore-optional
-
 on:
   push:
     branches:
@@ -18,6 +15,7 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest, windows-latest, ubuntu-22.04]
+        node-version: [20.x]
 
     steps:
       - name: Check out Git repository
@@ -25,76 +23,31 @@ jobs:
         with:
           submodules: "recursive"
 
-      - name: Install Node.js, NPM and Yarn
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
-          cache: 'yarn'
+      - name: install packages
+        run: npm install
 
-      - name: Install RPM & Pacman (on Ubuntu)
+      - name: Build
         if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update &&
-          sudo apt-get install --no-install-recommends -y rpm &&
-          sudo apt-get install --no-install-recommends -y libarchive-tools &&
-          sudo apt-get install --no-install-recommends -y libopenjp2-tools
+        run: npm run build:linux
 
-      - name: Install Snapcraft (on Ubuntu)
-        uses: samuelmeuli/action-snapcraft@v1
-        if: startsWith(matrix.os, 'ubuntu')
-        with:
-          snapcraft_token: ${{ secrets.snapcraft_token }}
-
-      - id: get_unm_version
-        name: Get the installed UNM version
-        run: |
-          yarn --ignore-optional
-          unm_version=$(node -e "console.log(require('./node_modules/@unblockneteasemusic/rust-napi/package.json').version)")
-          echo "::set-output name=unmver::${unm_version}"
-        shell: bash
-
-      - name: Install UNM dependencies for Windows
+      - name: Build
         if: runner.os == 'Windows'
-        run: |
-          ${{ env.YARN_INSTALL_NOPT }} \
-            @unblockneteasemusic/rust-napi-win32-x64-msvc@${{steps.get_unm_version.outputs.unmver}}
-        shell: bash
+        run: npm run build:win
 
-      - name: Install UNM dependencies for macOS
+      - name: Build
         if: runner.os == 'macOS'
-        run: |
-          ${{ env.YARN_INSTALL_NOPT }} \
-            @unblockneteasemusic/rust-napi-darwin-x64@${{steps.get_unm_version.outputs.unmver}} \
-            @unblockneteasemusic/rust-napi-darwin-arm64@${{steps.get_unm_version.outputs.unmver}} \
-            dmg-license
-        shell: bash
-
-      - name: Install UNM dependencies for Linux
-        if: runner.os == 'Linux'
-        run: |
-          ${{ env.YARN_INSTALL_NOPT }} \
-            @unblockneteasemusic/rust-napi-linux-x64-gnu@${{steps.get_unm_version.outputs.unmver}} \
-            @unblockneteasemusic/rust-napi-linux-arm64-gnu@${{steps.get_unm_version.outputs.unmver}} \
-            @unblockneteasemusic/rust-napi-linux-arm-gnueabihf@${{steps.get_unm_version.outputs.unmver}}
-        shell: bash
-
-      - name: Build/release Electron app
-        uses: samuelmeuli/action-electron-builder@v1.6.0
-        with:
-          github_token: ${{ secrets.github_token }}
-          release: ${{ startsWith(github.ref, 'refs/tags/v') }}
-          use_vue_cli: true
+        run: npm run build:mac
 
       - uses: actions/upload-artifact@v3
         with:
           name: YesPlayMusic-mac
-          path: dist_electron/*-universal.dmg
+          path: dist_electron/*.dmg
           if-no-files-found: ignore
 
       - uses: actions/upload-artifact@v3
         with:
           name: YesPlayMusic-win
-          path: dist_electron/*Setup*.exe
+          path: dist/*.exe
           if-no-files-found: ignore
 
       - uses: actions/upload-artifact@v3
