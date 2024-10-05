@@ -66,6 +66,7 @@
     <div class="right" @click="edit.id = -1">
         <div v-for="(config, id) in configs" :active="edit.id == id"
             v-deep-click="() => edit.id = id" @dblclick.stop="openSession(config)"
+            @contextmenu.prevent="configs.splice(id, 1), edit.id = -1"
         >
 
             <!-- 编辑模式 -->
@@ -133,7 +134,7 @@
     </div>
 </template>
 
-<style>
+<style lang="scss">
     body{
         margin: 0;
         display: flex;

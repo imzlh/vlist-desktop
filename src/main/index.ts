@@ -19,7 +19,7 @@ app.whenReady().then(() => {
         autoHideMenuBar: true,
         titleBarStyle: 'hidden',
         titleBarOverlay: {
-            color: 'rgba(0, 0, 0, 0)',
+            color: 'white',
             height: 35,
             symbolColor: 'gray'
         },
